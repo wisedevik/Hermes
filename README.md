@@ -78,6 +78,7 @@
         ```hs
         for (var i = 0; i < 5; i++) {
             // body
-        }```
+        }
+        ```
 # Config
  The language allows you to configure your modules and customize the structure with a simple config file.
