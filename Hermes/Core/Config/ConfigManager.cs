@@ -16,7 +16,7 @@ internal static class ConfigManager
 
         Config config = new Config()
         {
-            Version = "0.0.8",
+            Version = "0.0.9",
             ModulePath = "modules"
         };
         string serConfig = JsonConvert.SerializeObject(config);

@@ -227,15 +227,26 @@ internal class Parser
         }
         Eat(TokenType.RightParen);
 
-        // func body
-        Eat(TokenType.LeftBrace);
-        var body = new List<ASTNode>();
-        while (_currentToken.Type != TokenType.RightBrace)
+        List<ASTNode> body;
+
+        if (_currentToken.Type == TokenType.Arrow)
         {
-            body.Add(ParseProgram());
-            if (_currentToken.Type == TokenType.Semicolon) Eat(TokenType.Semicolon);
+            Eat(TokenType.Arrow);
+            var expression = ParseExpression();
+            body = new List<ASTNode> { new ReturnStatement(expression) };
+            Eat(TokenType.Semicolon); 
         }
-        Eat(TokenType.RightBrace);
+        else
+        {
+            Eat(TokenType.LeftBrace);
+            body = new List<ASTNode>();
+            while (_currentToken.Type != TokenType.RightBrace)
+            {
+                body.Add(ParseProgram());
+                if (_currentToken.Type == TokenType.Semicolon) Eat(TokenType.Semicolon);
+            }
+            Eat(TokenType.RightBrace);
+        }
 
         return new FunctionDeclaration(name, parameters, body);
     }

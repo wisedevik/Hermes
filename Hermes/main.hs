@@ -1,3 +1,6 @@
 @import io
-var x, y = 10, 11;
-io.print(x + y)
+func add(a, b) => a + b;
+func greet(name) => "Hello, " + name + "!";
+
+io.print(add(2, 3));
+io.print(greet("wisedev"));

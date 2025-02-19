@@ -185,7 +185,6 @@ internal class Lexer
                         _position += 2;
                         return new Token(TokenType.Decrement);
                     }
-
                     _position++;
                     return new Token(TokenType.Minus);
                 case '*':
@@ -230,6 +229,11 @@ internal class Lexer
                     {
                         _position += 2;
                         return new Token(TokenType.Equal);
+                    }
+                    else if (current == '=' && LookAhead(2) == "=>")
+                    {
+                        _position += 2;
+                        return new Token(TokenType.Arrow);
                     }
                     else
                     {

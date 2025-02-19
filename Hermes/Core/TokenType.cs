@@ -11,5 +11,5 @@ internal enum TokenType
     ElseKeyword, ElseIfKeyword, GreaterThan, LessThan,
     GreaterOrEqual, LessOrEqual, Equal,
     NotEqual, LeftBracket, RightBracket, ForKeyword,
-    Increment, Decrement, EOF
+    Increment, Decrement, Arrow, EOF
 }
