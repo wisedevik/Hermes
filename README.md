@@ -50,6 +50,12 @@
         ```hs
         sum(3, 4);  // returns 7
         ```
+    - Short function:
+        ```hs
+        @import io
+        func hello(name) => "Hello, " + name; // returns string ("Hello, {name}")
+        io.print(hello("wisedev"));
+        ```
  3. Conditionals:
     - Basic if, else, and else if statements:
         ```hs
