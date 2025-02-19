@@ -28,7 +28,14 @@ internal class Lexer
                 _position++;
                 continue;
             }
-            
+
+            // skip comments //
+            if (current == '/' && LookAhead(2) == "//")
+            {
+                while (_position < _input.Length && _input[_position] != '\n')
+                    _position++;
+                continue;
+            }
 
             if (current == 'i' && LookAhead(2) == "if")
             {
