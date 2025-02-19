@@ -95,11 +95,32 @@ internal class Interpreter
                 case ModuleNode moduleNode:
                     ExecuteModule(moduleNode);
                     break;
+                case IncrementExpression inc:
+                    EvaluateNode(inc);
+                    break;
+
+                case DecrementExpression dec:
+                    EvaluateNode(dec);
+                    break;
                 default:
                     EvaluateNode(stmt);
                     break;
             }
         }
+    }
+
+    private object EvaluateForStatement(ForStatement forStmt)
+    {
+        if (forStmt.Initializer != null)
+            EvaluateNode(forStmt.Initializer);
+
+        while (IsTruthy(EvaluateNode(forStmt.Condition)))
+        {
+            EvaluateNode(forStmt.Body);
+            if (forStmt.Increment != null)
+                EvaluateNode(forStmt.Increment);
+        }
+        return null;
     }
 
     private void RegisterBuiltinModule(string name, Dictionary<string, Func<object[], object>> functions)
@@ -154,8 +175,59 @@ internal class Interpreter
 
         ProgramNode prog => EvaluateProgramNode(prog),
 
+        ForStatement forStmt => EvaluateForStatement(forStmt),
+
+        VariableDeclaration varDecl => variables[varDecl.Name] = EvaluateNode(varDecl.Value),
+
+        IncrementExpression inc =>
+            HandleIncrement(inc.Target, inc.IsPrefix),
+
+        DecrementExpression dec =>
+            HandleDecrement(dec.Target, dec.IsPrefix),
+
+        AssignmentExpression assign =>
+            variables[(assign.Left as Variable).Name] = EvaluateNode(assign.Value),
+
+        MultipleAssignment multiAssign => HandleMultipleAssignment(multiAssign),
+
         _ => throw new Exception($"Unsupported node type: {node.GetType()}")
     };
+
+    private object HandleMultipleAssignment(MultipleAssignment multiAssign)
+    {
+        var evaluatedValues = multiAssign.Values.Select(EvaluateNode).ToList();
+
+        for (int i = 0; i < multiAssign.Variables.Count; i++)
+        {
+            variables[multiAssign.Variables[i]] = evaluatedValues[i];
+        }
+
+        return null;
+    }
+
+    private object HandleIncrement(Variable target, bool isPrefix)
+    {
+        if (!variables.TryGetValue(target.Name, out var value))
+            throw new Exception($"Undefined variable: {target.Name}");
+
+        var numericValue = Convert.ToDouble(value);
+        var newValue = numericValue + 1;
+
+        variables[target.Name] = newValue;
+        return isPrefix ? newValue : numericValue;
+    }
+
+    private object HandleDecrement(Variable target, bool isPrefix)
+    {
+        if (!variables.TryGetValue(target.Name, out var value))
+            throw new Exception($"Undefined variable: {target.Name}");
+
+        var numericValue = Convert.ToDouble(value);
+        var newValue = numericValue - 1;
+
+        variables[target.Name] = newValue;
+        return isPrefix ? newValue : numericValue;
+    }
 
     private object EvaluateArrayAccess(ArrayAccess arrayAccess)
     {
@@ -294,7 +366,7 @@ internal class Interpreter
         }
         catch (Exception e)
         {
-            ; // лень!
+            ; // лень!  
         }
 
         _importedModules.Add(moduleName);

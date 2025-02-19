@@ -37,6 +37,12 @@ internal class Lexer
                 continue;
             }
 
+            if (current == 'f' && LookAhead(3) == "for")
+            {
+                _position += 3;
+                return new Token(TokenType.ForKeyword);
+            }
+
             if (current == 'i' && LookAhead(2) == "if")
             {
                 _position += 2;
@@ -150,6 +156,7 @@ internal class Lexer
             // symbols
             switch (current)
             {
+
                 case '(':
                     _position++;
                     return new Token(TokenType.LeftParen);
@@ -163,9 +170,22 @@ internal class Lexer
                     _position++;
                     return new Token(TokenType.Semicolon);
                 case '+':
+                    if (LookAhead(2) == "++")
+                    {
+                        _position += 2;
+                        return new Token(TokenType.Increment);
+                    }
+
                     _position++;
                     return new Token(TokenType.Plus);
+
                 case '-':
+                    if (LookAhead(2) == "--")
+                    {
+                        _position += 2;
+                        return new Token(TokenType.Decrement);
+                    }
+
                     _position++;
                     return new Token(TokenType.Minus);
                 case '*':

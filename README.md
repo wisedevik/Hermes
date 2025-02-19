@@ -69,5 +69,15 @@
     io.print("s=" + s);
     ```
 
+ 5. For Loop and Multiple Variable Assignment:
+    - Multiple Variable Assignment:
+        ```hs
+        var x, y = 1, 2;
+        ```
+    - For Loop:
+        ```hs
+        for (var i = 0; i < 5; i++) {
+            // body
+        }```
 # Config
  The language allows you to configure your modules and customize the structure with a simple config file.

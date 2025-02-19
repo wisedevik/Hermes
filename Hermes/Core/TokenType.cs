@@ -10,5 +10,6 @@ internal enum TokenType
     ReturnKeyword, ModuleDeclaration, IfKeyword,
     ElseKeyword, ElseIfKeyword, GreaterThan, LessThan,
     GreaterOrEqual, LessOrEqual, Equal,
-    NotEqual, LeftBracket, RightBracket, EOF
+    NotEqual, LeftBracket, RightBracket, ForKeyword,
+    Increment, Decrement, EOF
 }

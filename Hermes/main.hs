@@ -1,1 +1,3 @@
-// write your code there of use Hermes.exe -i
+@import io
+var x, y = 10, 11;
+io.print(x + y)

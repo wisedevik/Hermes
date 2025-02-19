@@ -40,7 +40,7 @@ internal class Parser
             }
             else if (_currentToken.Type == TokenType.VarKeyword)
             {
-                program.Statements.Add(ParseVariableDeclaration());
+                program.Statements.Add(ParseMultipleAssignment());
             }
             else if (_currentToken.Type == TokenType.FuncKeyword)
             {
@@ -49,6 +49,10 @@ internal class Parser
             else if (_currentToken.Type == TokenType.ReturnKeyword)
             {
                 program.Statements.Add(ParseReturnStatement());
+            }
+            else if (_currentToken.Type == TokenType.ForKeyword)
+            {
+                program.Statements.Add(ParseForStatement());
             }
             else
             {
@@ -62,6 +66,77 @@ internal class Parser
         }
 
         return program;
+    }
+
+    private ASTNode ParseMultipleAssignment()
+    {
+        Eat(TokenType.VarKeyword);
+        var variables = new List<string>();
+        do
+        {
+            if (_currentToken.Type != TokenType.Identifier)
+                throw new Exception("Expected variable name");
+
+            variables.Add(_currentToken.Value);
+            Eat(TokenType.Identifier);
+
+            if (_currentToken.Type != TokenType.Comma)
+                break;
+
+            Eat(TokenType.Comma);
+        } while (true);
+
+        Eat(TokenType.Assign);
+
+        var values = new List<ASTNode>();
+        do
+        {
+            values.Add(ParseExpression());
+
+            if (_currentToken.Type != TokenType.Comma)
+                break;
+
+            Eat(TokenType.Comma);
+        } while (true);
+
+        if (variables.Count != values.Count)
+            throw new Exception("Number of variables and values must match");
+
+        return new MultipleAssignment(variables, values);
+    }
+
+    private ForStatement ParseForStatement()
+    {
+        Eat(TokenType.ForKeyword);
+        Eat(TokenType.LeftParen);
+
+        ASTNode initializer = null;
+        if (_currentToken.Type != TokenType.Semicolon)
+            initializer = _currentToken.Type == TokenType.VarKeyword ?
+                ParseVariableDeclaration()
+                : ParseExpression();
+
+        Eat(TokenType.Semicolon);
+        ASTNode condition = new Literal("1");
+        if (_currentToken.Type != TokenType.Semicolon)
+        {
+            condition = ParseExpression();
+        }
+
+        Eat(TokenType.Semicolon);
+
+        ASTNode increment = null;
+        if (_currentToken.Type != TokenType.RightParen)
+        {
+            increment = ParseExpression();
+        }
+        Eat(TokenType.RightParen);
+
+        Eat(TokenType.LeftBrace);
+        var body = ParseProgram();
+        Eat(TokenType.RightBrace);
+
+        return new ForStatement(initializer, condition, increment, body);
     }
 
     private ASTNode ParseArrayAccess(ASTNode array)
@@ -192,7 +267,21 @@ internal class Parser
 
     private ASTNode ParseExpression()
     {
-        return ParseComparison();
+        return ParseAssignment();
+    }
+
+    private ASTNode ParseAssignment()
+    {
+        var left = ParseComparison();
+
+        if (_currentToken.Type == TokenType.Assign)
+        {
+            Eat(TokenType.Assign);
+            var value = ParseAssignment();
+            return new AssignmentExpression(left, value);
+        }
+
+        return left;
     }
 
     private ASTNode ParseComparison()
@@ -268,6 +357,19 @@ internal class Parser
             return lit;
         }
 
+        if(_currentToken.Type is TokenType.Increment or TokenType.Decrement)
+        {
+            bool isIncrement = _currentToken.Type == TokenType.Increment;
+            Eat(_currentToken.Type);
+
+            var target = ParsePrimary() as Variable ??
+                throw new Exception("Invalid target for increment/decrement");
+
+            return isIncrement
+                ? new IncrementExpression(target, true)
+                : new DecrementExpression(target, true);
+        }
+
         if (_currentToken.Type == TokenType.LeftParen)
         {
             Eat(TokenType.LeftParen);
@@ -281,7 +383,16 @@ internal class Parser
             var ident = _currentToken.Value;
             Eat(TokenType.Identifier);
 
-            if (_currentToken.Type == TokenType.LeftParen)
+            if (_currentToken.Type is TokenType.Increment or TokenType.Decrement)
+            {
+                bool isIncrement = _currentToken.Type == TokenType.Increment;
+                Eat(_currentToken.Type);
+
+                return isIncrement
+                    ? new IncrementExpression(new Variable(ident), false)
+                    : new DecrementExpression(new Variable(ident), false);
+            }
+            else if (_currentToken.Type == TokenType.LeftParen)
             {
                 return ParseFunctionCall(ident);
             }
